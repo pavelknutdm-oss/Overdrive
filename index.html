@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101611">
+<meta name="description" content="Мобильный трекер сумм, излишка и дней овердрайва.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Овердрайв</title>
+<style>
+:root{color-scheme:dark;--bg:#101611;--panel:#1a211b;--panel2:#232d24;--line:#354338;--text:#eff6ef;--muted:#9aab9c;--green:#36db7b;--greenbg:#16442b;--lime:#c2f477}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1c3021,var(--bg) 55%);color:var(--text);font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;padding:calc(14px + env(safe-area-inset-top)) 12px calc(120px + env(safe-area-inset-bottom))}.app{max-width:760px;margin:auto}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 2px 18px}.kicker{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--lime);font-weight:800}h1{font-size:32px;letter-spacing:-.04em;line-height:1.05;margin:5px 0}.subtitle{font-size:12px;color:var(--muted);margin:0}.iconbtn{width:46px;height:46px;display:grid;place-items:center;font-size:21px;border:1px solid var(--line);border-radius:15px;background:var(--panel);color:var(--text);flex:none}
+.monthbar{display:flex;align-items:center;justify-content:space-between;margin:0 2px 12px}.monthtitle{font-weight:750;font-size:17px}.monthhint{font-size:11px;color:var(--muted)}
+.days{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.day{min-width:0;background:linear-gradient(145deg,#202a21,#171e18);border:1px solid var(--line);border-radius:15px;padding:10px 9px;transition:.15s}.day-top{display:flex;align-items:center;justify-content:space-between;gap:4px;margin-bottom:8px}.day-num{font-weight:800;font-size:13px}.dot{width:8px;height:8px;border-radius:50%;background:#657368;flex:none}.day input{width:100%;min-width:0;border:1px solid #3b4b3d;border-radius:10px;background:#111812;color:var(--text);padding:11px 4px;text-align:center;font:600 16px system-ui;outline:none}.day input:focus{border-color:var(--green);box-shadow:0 0 0 2px #36db7b22}.caption{text-align:center;font-size:10px;color:var(--muted);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.day.passed{background:linear-gradient(145deg,#1b6038,#17452c);border-color:#2eaa60}.passed .dot{background:#82ffb0;box-shadow:0 0 9px #36db7b88}.passed input{background:#103921;border-color:#347d50}.passed .caption{color:#c5f7d5}.day.locked{background:#161b17;border-color:#29332b;opacity:.65}.locked input{background:#202721;color:#91a094;border-color:#303a31}.locked .dot{background:#d6b45b}.locked .caption{color:#d6b45b}.day.empty{visibility:hidden}
+.summary{position:fixed;z-index:5;left:0;right:0;bottom:0;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#101611ed;backdrop-filter:blur(18px);border-top:1px solid #344237}.summary-inner{max-width:760px;margin:auto;display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:8px}.stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:10px 9px;min-width:0}.statlabel{font-size:10px;color:var(--muted);margin-bottom:4px}.statvalue{font-size:clamp(17px,4.5vw,23px);font-weight:850;letter-spacing:-.04em;overflow-wrap:anywhere;line-height:1.2}.stat.over{border-color:#32794d}.stat.over .statvalue{color:var(--green)}.note{font-size:10px;color:var(--muted);margin-top:4px}
+.progress{max-width:760px;margin:13px auto 0}.progresshead{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px}.track{height:5px;border-radius:9px;background:#303a32;overflow:hidden}.bar{height:100%;width:0;background:linear-gradient(90deg,#27b965,#c2f477);border-radius:9px}
+button{font:inherit;cursor:pointer}.modalback{position:fixed;inset:0;z-index:10;background:#0009;display:none;align-items:flex-end;justify-content:center;padding:12px}.modalback.open{display:flex}.modal{width:min(100%,500px);background:#1a211b;border:1px solid var(--line);border-radius:24px;padding:20px 17px calc(18px + env(safe-area-inset-bottom));box-shadow:0 20px 70px #0008;max-height:85dvh;overflow:auto}.modalhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modal h2{margin:0;font-size:22px}.close{width:38px;height:38px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);color:var(--text);font-size:20px}.field{display:flex;flex-direction:column;gap:7px;margin:13px 0}.field label{font-size:12px;color:var(--muted)}.field input,.field select{width:100%;padding:13px;border:1px solid var(--line);border-radius:12px;background:#101611;color:var(--text);font:inherit}.twocol{display:grid;grid-template-columns:1fr 1fr;gap:10px}.actionrow{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:18px}.action{padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);color:var(--text);font-weight:650}.action.primary{background:var(--greenbg);border-color:#32794d}.action.danger{color:#ffaaa2}.settingsnote{font-size:12px;color:var(--muted);line-height:1.5;margin:15px 0 0}
+@media(min-width:520px){body{padding-left:20px;padding-right:20px}.days{grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.day{padding:12px 10px}.day input{font-size:17px}.summary{padding-left:20px;padding-right:20px}}
+@media(max-width:340px){.days{grid-template-columns:repeat(2,minmax(0,1fr))}.stat{padding:8px 7px}.statlabel{font-size:9px}}
+</style>
+</head>
+<body>
+<main class="app">
+<header><div><div class="kicker">Ежемесячный трекер</div><h1>Овердрайв</h1><p class="subtitle">Суммы, излишек и закрытые дни</p></div><button class="iconbtn" id="openSettings" aria-label="Настройки" title="Настройки">⚙</button></header>
+<div class="monthbar"><div><div class="monthtitle" id="monthTitle">Месяц</div><div class="monthhint" id="monthHint">Дни месяца</div></div><div class="monthhint">● зелёный — выше минимума</div></div>
+<section id="days" class="days" aria-label="Дни месяца"></section>
+</main>
+<section class="summary"><div class="summary-inner">
+<div class="stat"><div class="statlabel">Общая сумма</div><div class="statvalue" id="total">0</div><div class="note" id="entered">Заполнено 0 дней</div></div>
+<div class="stat"><div class="statlabel">Излишек</div><div class="statvalue" id="surplus">0</div><div class="note">Сверх плана месяца</div></div>
+<div class="stat over"><div class="statlabel">Дни овердрайва</div><div class="statvalue" id="overDays">0</div><div class="note" id="blockedNote">Закрыто: 0 дней</div></div>
+</div><div class="progress"><div class="progresshead"><span>Выполнение плана</span><strong id="progressText">0%</strong></div><div class="track"><div class="bar" id="progressBar"></div></div></div></section>
+<div class="modalback" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle"><section class="modal">
+<div class="modalhead"><h2 id="settingsTitle">Настройки</h2><button class="close" id="closeSettings" aria-label="Закрыть">×</button></div>
+<div class="field"><label for="minimum">Минимальная сумма за день</label><input id="minimum" type="number" min="0" step="1" value="500" inputmode="decimal"></div>
+<div class="twocol"><div class="field"><label for="month">Месяц</label><select id="month"><option value="0">Январь</option><option value="1">Февраль</option><option value="2">Март</option><option value="3">Апрель</option><option value="4">Май</option><option value="5">Июнь</option><option value="6">Июль</option><option value="7">Август</option><option value="8">Сентябрь</option><option value="9">Октябрь</option><option value="10">Ноябрь</option><option value="11">Декабрь</option></select></div><div class="field"><label for="year">Год</label><input id="year" type="number" min="2000" max="2100" value="2026"></div></div>
+<p class="settingsnote">Излишек каждого дня закрывает следующие дни: например, излишек 1 000 при минимуме 500 закрывает 2 следующих дня. Изменение исходной суммы автоматически пересчитывает блокировку.</p>
+<div class="actionrow"><button class="action primary" id="exportBtn">Экспорт CSV</button><button class="action danger" id="resetBtn">Очистить месяц</button></div>
+</section></div>
+<script>
+(()=>{
+const $=id=>document.getElementById(id), months=['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+const now=new Date();$('month').value=now.getMonth();$('year').value=now.getFullYear();
+let values=Array(31).fill('');
+const fmt=n=>new Intl.NumberFormat('ru-RU',{maximumFractionDigits:2}).format(n);
+const num=v=>{const n=Number(String(v??'').replace(',','.'));return Number.isFinite(n)&&n>0?n:0};
+const countDays=()=>new Date(Number($('year').value),Number($('month').value)+1,0).getDate();
+const key=()=>`overdrive-mobile-${$('year').value}-${$('month').value}`;
+function lockMap(){
+ const minimum=num($('minimum').value), count=countDays(), locks=Array(31).fill(false);
+ for(let i=0;i<count;i++){
+  if(locks[i]) continue;
+  const amount=num(values[i]);
+  const excess=Math.max(0,amount-minimum);
+  const days=Math.floor((excess+1e-9)/Math.max(1,minimum));
+  for(let j=i+1;j<=Math.min(count-1,i+days);j++) locks[j]=true;
+ }
+ return locks;
+}
+function render(){
+ const count=countDays(),days=$('days');days.innerHTML='';
+ $('monthTitle').textContent=`${months[Number($('month').value)]} ${$('year').value}`;
+ $('monthHint').textContent=`${count} дней · минимум ${fmt(num($('minimum').value))} в день`;
+ for(let i=0;i<31;i++){
+  const valid=i<count,card=document.createElement('div');card.className='day'+(!valid?' empty':'');
+  card.innerHTML=`<div class="day-top"><span class="day-num">${i+1} день</span><span class="dot"></span></div><input type="number" min="0" step="any" inputmode="decimal" placeholder="0" aria-label="Сумма за ${i+1} день"><div class="caption">сумма за день</div>`;
+  const input=card.querySelector('input');input.value=values[i]??'';input.disabled=!valid;
+  input.addEventListener('input',()=>{values[i]=input.value;update();save()});
+  days.appendChild(card);
+ }
+ update();
+}
+function update(){
+ const count=countDays(),minimum=num($('minimum').value),locks=lockMap();let total=0,entered=0,blocked=0,overDays=0;
+ [...$('days').children].forEach((card,i)=>{
+  const input=card.querySelector('input'),amount=num(input.value);
+  if(i>=count)return;
+  if(input.value.trim()!=='')entered++;
+  total+=amount;
+  const locked=locks[i] && amount===0;
+  card.classList.toggle('locked',locked);card.classList.toggle('passed',!locks[i]&&input.value.trim()!==''&&amount>minimum);
+  input.disabled=locks[i];card.querySelector('.caption').textContent=locks[i]?'🔒 Закрыт излишком':(input.value.trim()!==''&&amount>minimum?'✓ Выше минимума':'сумма за день');
+  if(locks[i])blocked++;
+  if(!locks[i]&&amount>minimum)overDays+=Math.floor((amount-minimum)/Math.max(1,minimum));
+ });
+ const plan=minimum*count, surplus=Math.max(0,total-plan);
+ $('total').textContent=fmt(total);$('entered').textContent=`Заполнено ${entered} из ${count} дней`;
+ $('surplus').textContent=fmt(surplus);
+ $('overDays').textContent=fmt(Math.floor(surplus/Math.max(1,minimum)));
+ $('blockedNote').textContent=`Закрыто: ${blocked} дней`;
+ const pct=plan?Math.min(100,total/plan*100):(total?100:0);$('progressText').textContent=fmt(pct)+'%';$('progressBar').style.width=pct+'%';
+}
+function save(){try{localStorage.setItem(key(),JSON.stringify({values,minimum:$('minimum').value}))}catch(e){}}
+function load(){try{const d=JSON.parse(localStorage.getItem(key())||'null');values=Array.isArray(d?.values)?d.values.slice(0,31):Array(31).fill('');while(values.length<31)values.push('');if(d?.minimum!==undefined)$('minimum').value=d.minimum}catch(e){values=Array(31).fill('')}render()}
+$('openSettings').onclick=()=>$('settingsModal').classList.add('open');
+$('closeSettings').onclick=()=>$('settingsModal').classList.remove('open');
+$('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))$('settingsModal').classList.remove('open')});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')$('settingsModal').classList.remove('open')});
+$('month').onchange=load;$('year').onchange=load;
+$('minimum').addEventListener('input',()=>{update();save()});
+$('resetBtn').onclick=()=>{if(confirm('Очистить суммы за выбранный месяц?')){values=Array(31).fill('');try{localStorage.removeItem(key())}catch(e){}load()}};
+$('exportBtn').onclick=()=>{const count=countDays(),m=Number($('month').value),y=$('year').value,rows=[['Дата','Сумма','Заблокирован']];const locks=lockMap();for(let i=0;i<count;i++)rows.push([`${String(i+1).padStart(2,'0')}.${String(m+1).padStart(2,'0')}.${y}`,num(values[i]),locks[i]?'Да':'Нет']);const csv='\ufeff'+rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=`overdrive-${y}-${String(m+1).padStart(2,'0')}.csv`;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+load();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+  });
+}
+</script>
+
+</body></html>
